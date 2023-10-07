@@ -1,2 +1,2 @@
-# store
+# Store
 The online modules store

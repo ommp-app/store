@@ -1,0 +1,7 @@
+{
+    "@name": "English",
+    "@author": "The OMMP Team",
+    "@description": "Official english translation for the OMMP Store Module",
+    "@module_name": "Store",
+    "@module_description": "This module is intended to serve as a module store, to enable searching, installing and updating third-party modules on OMMP."
+}
