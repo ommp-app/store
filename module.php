@@ -74,18 +74,54 @@ function store_process_api($action, $data) {
  *      FALSE to generate a 404 error
  */
 function store_process_page($page, $pages_path) {
-    global $user, $db_prefix;
+    global $user, $db_prefix, $sql;
+    $data_path = module_get_data_path("store");
 
-    // This module has only one page
-    if ($page != "") {
+    // Check if we must display index
+    if ($page == "") {
+        return [
+            "content" => page_read_module($pages_path . "index.html", []),
+            "title" => $user->module_lang->get("@module_name")
+        ];
+    }
+
+    // Explode the path
+    $pages = array_filter(explode("/", $page));
+    $module_name = $pages[0];
+
+    // Get informations about the module
+    $module_infos = dbGetFirstLineSimple("{$db_prefix}store_modules", "not hidden and not blocked and name = " . $sql->quote($module_name));
+
+    // Check if module exists
+    if ($module_infos === FALSE) {
         return FALSE;
     }
 
-    // Return the page to display
-    return [
-        "content" => page_read_module($pages_path . "index.html", []),
-        "title" => $user->module_lang->get("@module_name")
-    ];
+    // Get latest version of module
+    $latest_version = dbGetFirstLine("SELECT * FROM {$db_prefix}store_versions WHERE store_id = " . $sql->quote($module_infos['id']) . " ORDER BY version DESC");
+
+    // Check if any version has been updated yet
+    if ($latest_version === FALSE) {
+        return FALSE;
+    }
+
+    // Check if we must display the module's page
+    if (count($pages) == 1) {
+
+        // Reads metadate
+        $metadata = @json_decode(@file_get_contents("{$data_path}{$module_name}/meta.json"));
+
+        // Get language from the module
+        // Try to load the current user's language, if not available in module then load the default module's language
+        $lang_code = file_exists("{$data_path}{$module_name}/languages/" . $user->lang->current_language() . ".json") ? $user->lang->current_language() : $metadata->default_language;
+        $module_lang = @json_decode(@file_get_contents("{$data_path}{$module_name}/languages/{$lang_code}.json"));
+
+        return [
+            "content" => print_r($latest_version, TRUE) . "<br />" . print_r($metadata, TRUE) . "<br />" . print_r($module_lang, TRUE),
+            "title" => $user->module_lang->get("@module_name")
+        ];
+    }
+
 }
 
 /**
