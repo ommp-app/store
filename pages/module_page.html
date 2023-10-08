@@ -1,0 +1,149 @@
+<link rel="stylesheet" href="{S:DIR}media/store/style.css?v={S:PAGE_RESOURCES_VERSION}" />
+<div class="row d-flex justify-content-center mt-4">
+    <div class="col-lg-10 col-xl-8 col-xxl-7">
+        <a href="{S:DIR}store" class="black-link">{L:@MODULE_NAME} &#9655;</a>
+        <table class="mt-4">
+            <tr>
+                <td style="vertical-align:top;"><div class="p-3" style="border:1px solid #C8C8C8;border-radius:1em;"><img src="{S:DIR}store/{MODULE_ID}/icon.png?v={MODULE_VERSION}" class="inline-image-huge" alt="" /></div></td>
+                <td class="ps-5" style="text-align:left;">
+                    <h2 class="mt-3 mb-3">{MODULE_NAME}</h2>
+                    <div class="small ps-3 pe-5 mb-2">{MODULE_DESCRIPTION}</div>
+                </td>
+            </tr>
+        </table>
+        <div class="mt-3">
+            <span class="lighter">{L:AUTHOR}</span><br /><a href="{S:DIR}store/@{AUTHOR_USERNAME}" style="font-size:1.2em;" class="black-link">{AUTHOR_NAME}{AUTHOR_CERTIFIED_IMAGE}</a>
+        </div>
+        <div class="row justify-content-start mt-3 mb-5">
+            <div class="col-lg-3 col-md-6 ellipsis"><span class="lighter">{L:VERSION}</span><br /><span style="font-size:1.1em;" class="black-link">{MODULE_VERSION}</span></div>
+            <div class="col-lg-3 col-md-6 ellipsis"><span class="lighter">{L:OMMP_VERSION}</span><br /><span style="font-size:1.1em;" class="black-link">{OMMP_VERSION} +</span></div>
+            <div class="col-lg-3 col-md-6 ellipsis"><span class="lighter">{L:LANGUAGES}</span><br /><span style="font-size:1.1em;" class="black-link">{MODULE_LANGUAGES}</span></div>
+            <div class="col-lg-3 col-md-6 ellipsis"><span class="lighter">{L:SIZE}</span><br /><span style="font-size:1.1em;" class="black-link">{MODULE_SIZE}</span></div>
+            <div class="col-lg-6 col-md-6 ellipsis"><span class="lighter">{L:WEBSITE}</span><br /><a href="{MODULE_WEBSITE}" target="_blank" style="font-size:1.1em;" class="black-link">{MODULE_WEBSITE_HR}</a></div>
+            <div class="col-lg-6 col-md-6 ellipsis"><span class="lighter">{L:CONTACT}</span><br /><a href="mailto:{MODULE_CONTACT}" target="_blank" style="font-size:1.1em;" class="black-link">{MODULE_CONTACT}</a></div>
+        </div>
+        <hr />
+        <h5 class="mt-5">{L:VERSIONS_LIST}</h5>
+        <div style="overflow-y:auto;max-height:30vh;">
+            <table class="mt-3 w-100">
+                <thead>
+                    <tr>
+                        <th class="ellipsis lighter" style="position:sticky;top:0px;background-color:white;">{L:VERSION}</th>
+                        <th class="ellipsis lighter" style="position:sticky;top:0px;background-color:white;">{L:OMMP_VERSION}</th>
+                        <th class="ellipsis lighter" style="position:sticky;top:0px;background-color:white;">{L:DATE}</th>
+                        <th class="ellipsis lighter" style="position:sticky;top:0px;background-color:white;">{L:GET}</th>
+                    </tr>
+                </thead>
+                <tbody id="versions-list"></tbody>
+            </table>
+        </div>
+        <div id="screenshots">
+            <hr />
+            <h5 class="mt-5">{L:SCREENSHOTS}</h5>
+            <div id="sc-list" class="row justify-content-start mt-3 mb-5"></div>
+        </div>
+    </div>
+</div>
+<div id="image-viewer">
+	<img src="{S:DIR}media/ommp/images/loading.gif" id="image-loader" alt=""/>
+	<img src="" id="image-view" alt="" />
+	<div id="image-prev" class="prevent-close" href=""><img class="prevent-close" src="{S:DIR}media/store/arrow.svg" alt="{L:PREV}" title="{L:PREV}" /></div>
+	<div id="image-next" class="prevent-close" href=""><img class="prevent-close" src="{S:DIR}media/store/arrow.svg" alt="{L:NEXT}" title="{L:NEXT}" /></div>
+</div>
+<script>
+// Get all the versions
+Api.apiRequest('store', 'get-module-versions', {'id': '{MODULE_ID}'}, r => {
+    // Check for errors
+    if (typeof r.error !== 'undefined') {
+        notifError(r.error, '{JS:L:ERROR}');
+        return;
+    }
+    // Display the list
+    let bestMarked = false, required = parseInt(getCookie('store.required_version')), returnUrl = getCookie('store.return');
+    r.versions.forEach(version => {
+        var mark = false;
+        if (!bestMarked && version.required <= required) {
+            bestMarked = true;
+            mark = true;
+        }
+        var zipUrl = '{S:SCHEME}://{S:DOMAIN}{S:DIR}store/{MODULE_ID}/{MODULE_ID}-v' + version.version + '.zip';
+        var html = (
+            '<tr style="border-top:1px solid #C8C8C8;"><td class="ellipsis">' + escapeHtml(version.version) + '</td>' +
+            '<td class="ellipsis">' + escapeHtml(version.required) + ' +</td>' +
+            '<td class="ellipsis">' + escapeHtml(version.formatted_timestamp) + '</td>' +
+            '<td class="ellipsis">' + (returnUrl != '' ? '<a href="' + escapeHtml(returnUrl + encodeURI(zipUrl)) +
+            '" class="btn btn-' + (mark ? 'success' : 'light') +' btn-sm m-1" role="button" aria-pressed="true">{JS:L:INSTALL}</a>' : '') +
+            '<a href="' + escapeHtml(zipUrl) + '" class="btn btn-light btn-sm m-1" role="button" aria-pressed="true">{JS:L:DOWNLOAD}</a></td></tr>'
+        );
+        if (mark) {
+            // Add the best version on top
+            $('#versions-list').prepend(html);
+        } else {
+            $('#versions-list').append(html);
+        }
+    });
+});
+// Display screenshots
+let screenshots = parseInt('{JS:MODULE_SCREENSHOTS}');
+let imagesList = [];
+for (var i = 0; i < screenshots; i++) {
+    imagesList.push('{JS:S:SCHEME}://{JS:S:DOMAIN}{JS:S:DIR}store/{JS:MODULE_ID}/screenshot_' + i + '.jpg');
+    $('#sc-list').append('<div class="col-lg-3 col-md-6 ellipsis mb-1"><img onclick="displayImages(imagesList, ' + i + ')" src="' + imagesList[i] + '?thumb=256" alt="" style="max-width:100%;border:1px solid #c8c8c8;cursor:pointer;" /></div>');
+}
+if (screenshots > 0) {
+    $('#screenshots').show(0);
+}
+/**
+ * Creates an image viewer
+ * @param {*} images A list of images URL to display
+ * @param {*} pos The position in the list
+ */
+function displayImages(images, pos) {
+
+    // Display the image viewer
+    $('#image-view').attr('src', '');
+    $('#image-loader').show();
+    $('#image-view').attr('src', images[pos]).on('load', () => {$('#image-loader').hide();});
+    $('#image-viewer').show();
+
+    // Create next and previous functions
+    let prevFunc = () => {
+        closeImagePreview();
+        displayImages(images, (pos - 1).mod(images.length));
+    };
+    let nextFunc = () => {
+        closeImagePreview();
+        displayImages(images, (pos + 1).mod(images.length));
+    };
+
+    // Set the next and previous buttons
+    $('#image-prev').unbind().click(prevFunc);
+    $('#image-next').unbind().click(nextFunc);
+
+    // Set key binding
+    document.onkeydown = function(e) {
+        if (e.key == 'ArrowLeft') {
+            prevFunc();
+        } else if (e.key == 'ArrowRight') {
+            nextFunc();
+        } else if (e.key == 'Escape') {
+            closeImagePreview();
+        } else {
+            return;
+        }
+        e.preventDefault();
+    };
+
+    // Set the "close" button
+    $('#image-viewer').on('click', (e) => {e.target.classList.contains('prevent-close') ? null : closeImagePreview();});
+}
+/**
+ * Close the image preview
+ */
+ function closeImagePreview() {
+	// Hide the viewer
+	$('#image-viewer').hide();
+	$('#image-view').attr('src', '');
+	document.onkeydown = null;
+}
+</script>
