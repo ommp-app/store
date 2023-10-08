@@ -41,3 +41,6 @@
 #image-view {
     background-color: white;
 }
+#screenshots {
+    display: none;
+}
