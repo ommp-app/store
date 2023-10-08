@@ -4,7 +4,9 @@
         <a href="{S:DIR}store" class="black-link">{L:@MODULE_NAME} &#9655;</a>
         <table class="mt-4">
             <tr>
-                <td style="vertical-align:top;"><div class="p-3" style="border:1px solid #C8C8C8;border-radius:1em;"><img src="{S:DIR}store/{MODULE_ID}/icon.png?v={MODULE_VERSION}" class="inline-image-huge" alt="" /></div></td>
+                <td style="vertical-align:top;"><div class="p-3" onclick="displayImages(['{JS:S:DIR}store/{JS:MODULE_ID}/icon.png?v={JS:MODULE_VERSION}'], 0);" style="cursor:pointer;border:1px solid #C8C8C8;border-radius:1em;">
+                    <img src="{S:DIR}store/{MODULE_ID}/icon.png?v={MODULE_VERSION}" class="inline-image-huge" alt="" />
+                </div></td>
                 <td class="ps-5" style="text-align:left;">
                     <h2 class="mt-3 mb-3">{MODULE_NAME}</h2>
                     <div class="small ps-3 pe-5 mb-2">{MODULE_DESCRIPTION}</div>
@@ -105,6 +107,13 @@ function displayImages(images, pos) {
     $('#image-loader').show();
     $('#image-view').attr('src', images[pos]).on('load', () => {$('#image-loader').hide();});
     $('#image-viewer').show();
+    if (images.length == 1) {
+        $('#image-prev').hide(0);
+        $('#image-next').hide(0);
+    } else {
+        $('#image-prev').show(0);
+        $('#image-next').show(0);
+    }
 
     // Create next and previous functions
     let prevFunc = () => {

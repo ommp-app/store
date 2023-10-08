@@ -16,6 +16,7 @@
     left: 50%;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    background-color: white;
 }
 #image-viewer > div {
     position: absolute;
@@ -35,6 +36,6 @@
 #image-next {
     right: 5%;
 }
-#image-viewer > a > img {
+#image-viewer > div > img {
     opacity: 0.5;
 }
